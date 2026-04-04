@@ -21,6 +21,13 @@ int main()
     {
         if (txGetAsyncKeyState(VK_ESCAPE)) break;
 
+        if (txGetAsyncKeyState(VK_RIGHT))       xC += dx * (txGetAsyncKeyState(VK_SHIFT) ? 50.f : 10.f);
+        if (txGetAsyncKeyState(VK_LEFT))        xC -= dx * (txGetAsyncKeyState(VK_SHIFT) ? 50.f : 10.f);
+        if (txGetAsyncKeyState(VK_DOWN))        yC += dy * (txGetAsyncKeyState(VK_SHIFT) ? 50.f : 10.f);
+        if (txGetAsyncKeyState(VK_UP))          yC -= dy * (txGetAsyncKeyState(VK_SHIFT) ? 50.f : 10.f);
+        if (txGetAsyncKeyState(VK_OEM_PLUS))    scale += dx * (txGetAsyncKeyState(VK_SHIFT) ? 50.f : 10.f);
+        if (txGetAsyncKeyState(VK_OEM_MINUS))   scale -= dx * (txGetAsyncKeyState(VK_SHIFT) ? 50.f : 10.f);
+
         for (int iy = 0; iy < 600; iy++)
         {
             if (txGetAsyncKeyState(VK_ESCAPE)) break;
