@@ -28,19 +28,19 @@ int main()
 
         if (txGetAsyncKeyState(VK_RIGHT))       xC += dx * (txGetAsyncKeyState(VK_SHIFT) ? 50.f : 10.f);
         if (txGetAsyncKeyState(VK_LEFT))        xC -= dx * (txGetAsyncKeyState(VK_SHIFT) ? 50.f : 10.f);
-        if (txGetAsyncKeyState(VK_DOWN))        yC += dy * (txGetAsyncKeyState(VK_SHIFT) ? 50.f : 10.f);
-        if (txGetAsyncKeyState(VK_UP))          yC -= dy * (txGetAsyncKeyState(VK_SHIFT) ? 50.f : 10.f);
-        if (txGetAsyncKeyState(VK_OEM_PLUS))    scale -= dx * (txGetAsyncKeyState(VK_SHIFT) ? 50.f : 10.f);
-        if (txGetAsyncKeyState(VK_OEM_MINUS))   scale += dx * (txGetAsyncKeyState(VK_SHIFT) ? 50.f : 10.f);
+        if (txGetAsyncKeyState(VK_DOWN))        yC -= dy * (txGetAsyncKeyState(VK_SHIFT) ? 50.f : 10.f);
+        if (txGetAsyncKeyState(VK_UP))          yC += dy * (txGetAsyncKeyState(VK_SHIFT) ? 50.f : 10.f);
+        if (txGetAsyncKeyState(VK_OEM_PLUS))    scale *= (txGetAsyncKeyState(VK_SHIFT) ? 0.9f : 0.95f);
+        if (txGetAsyncKeyState(VK_OEM_MINUS))   scale *= (txGetAsyncKeyState(VK_SHIFT) ? 1.1f : 1.05f);
 
         for (int iy = 0; iy < 600; iy++)
         {
             if (txGetAsyncKeyState(VK_ESCAPE)) break;
 
-            float y0 = (((float)iy - 300.f) * dy + yC) * scale;
-            float x0 = ((-490.f) * dx + xC) * scale;
+            float y0 = yC + ((float)iy - 300.f) * dy * scale;
+            float x0 = xC + (-400.f) * dx * scale;
 
-            for (int ix = 0; ix < 800; ix += 4, x0 += dx*4)
+            for (int ix = 0; ix < 800; ix += 4, x0 += dx*scale*4)
             {
                 float X0[4] = {x0, x0+dx, x0+2*dx, x0+3*dx};
                 float Y0[4] = {y0, y0, y0, y0};
