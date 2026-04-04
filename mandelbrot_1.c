@@ -8,7 +8,7 @@
 #include <stdio.h>
 
 const int nMax = 256;
-const float r2Max = 10;
+const float r2Max = 4;
 
 int main()
 {
@@ -21,12 +21,17 @@ int main()
     {
         if (txGetAsyncKeyState(VK_ESCAPE)) break;
 
+        txBegin();
+
+        RGBQUAD* pixel = txVideoMemory(); // pixel = array of structures with color
+        int width  = txGetExtentX();
+
         if (txGetAsyncKeyState(VK_RIGHT))       xC += dx * (txGetAsyncKeyState(VK_SHIFT) ? 50.f : 10.f);
         if (txGetAsyncKeyState(VK_LEFT))        xC -= dx * (txGetAsyncKeyState(VK_SHIFT) ? 50.f : 10.f);
         if (txGetAsyncKeyState(VK_DOWN))        yC += dy * (txGetAsyncKeyState(VK_SHIFT) ? 50.f : 10.f);
         if (txGetAsyncKeyState(VK_UP))          yC -= dy * (txGetAsyncKeyState(VK_SHIFT) ? 50.f : 10.f);
-        if (txGetAsyncKeyState(VK_OEM_PLUS))    scale += dx * (txGetAsyncKeyState(VK_SHIFT) ? 50.f : 10.f);
-        if (txGetAsyncKeyState(VK_OEM_MINUS))   scale -= dx * (txGetAsyncKeyState(VK_SHIFT) ? 50.f : 10.f);
+        if (txGetAsyncKeyState(VK_OEM_PLUS))    scale -= dx * (txGetAsyncKeyState(VK_SHIFT) ? 50.f : 10.f);
+        if (txGetAsyncKeyState(VK_OEM_MINUS))   scale += dx * (txGetAsyncKeyState(VK_SHIFT) ? 50.f : 10.f);
 
         for (int iy = 0; iy < 600; iy++)
         {
@@ -35,38 +40,55 @@ int main()
             float y0 = (((float)iy - 300.f) * dy + yC) * scale;
             float x0 = ((-490.f) * dx + xC) * scale;
 
-            for (int ix = 0; ix < 800; ix++, x0 += dx)
+            for (int ix = 0; ix < 800; ix += 4, x0 += dx*4)
             {
-                float x = x0;
-                float y = y0;
+                float X0[4] = {x0, x0+dx, x0+2*dx, x0+3*dx};
+                float Y0[4] = {y0, y0, y0, y0};
+                float X[4] = {}; for (int i = 0; i < 4; i++) X[i] = X0[i];
+                float Y[4] = {}; for (int i = 0; i < 4; i++) Y[i] = Y0[i];
 
-                int N = 0;
-                for (; N < nMax; N++)
+                int N[4] = {0, 0, 0, 0};
+                for (int n = 0; n < nMax; n++)
                 {
-                    float   x2 = x*x, 
-                            y2 = y*y, 
-                            xy = x*y;
+                    float X2[4] = {}; for (int i = 0; i < 4; i++) X2[i] = X[i] * X[i]; 
+                    float Y2[4] = {}; for (int i = 0; i < 4; i++) Y2[i] = Y[i] * Y[i]; 
+                    float XY[4] = {}; for (int i = 0; i < 4; i++) XY[i] = X[i] * Y[i];
                     
-                    float r2 = x2 + y2;
+                    float r2[4] = {}; for (int i = 0; i < 4; i++) r2[i] = X2[i] + Y2[i];
                     
-                    if (r2 >= r2Max) break; 
+                    int cmp[4] = {};
+                    for (int i = 0; i < 4; i++) if (r2[i] <= r2Max) cmp[i] = 1;
+                    
+                    int mask = 0;
+                    for (int i = 0; i < 4; i++) mask |= (cmp[i] << i);  // mask in binary: first bit = cmp[3], second is cmp[2], ...
+                    if (!mask) break;
 
-                    x = x2 - y2 + x0;
-                    y = xy + xy + y0;
+                    for (int i = 0; i < 4; i++) N[i] = N[i] + cmp[i];   // fix the iteration number (cmp[i] = 0 if element is out of range)
+
+                    for (int i = 0; i < 4; i++)
+                    {
+                        if (cmp[i])
+                        {
+                            X[i] = X2[i] - Y2[i] + X0[i];
+                            Y[i] = XY[i] + XY[i] + Y0[i];
+                        }
+                    }
                 }
 
-                float I = sqrtf(sqrtf((float)N / (float)nMax)) * 255.f;
+                for (int i = 0; i < 4; i++)
+                {
+                    float I = sqrtf(sqrtf((float)N[i] / (float)nMax)) * 255.f;
 
-                BYTE c = (BYTE) I;
-                RGBQUAD color = (N < nMax) ? RGBQUAD {(BYTE)(255 - c), (BYTE)(c%2 * 64), c, 0} : RGBQUAD {0, 0, 0, 0};
+                    BYTE c = (BYTE) I;
+                    RGBQUAD color = (N[i] < nMax) ? RGBQUAD {(BYTE)(255 - c), (BYTE)(c%2 * 64), c, 0} : RGBQUAD {0, 0, 0, 0};
 
-                RGBQUAD* pixel = txVideoMemory();
-                int width  = txGetExtentX();
-                pixel[iy * width + ix] = color;
+                    pixel[iy * width + ix + i] = color;
+                }
             }
         }
-        printf("\t\r%.01f", txGetFPS());
-        txSleep();          //now window doesn't close immediately
+        txEnd();
+        printf("\rFPS: %6.1f   ", txGetFPS());
+        fflush(stdout);
     }
     return 0;
 }
