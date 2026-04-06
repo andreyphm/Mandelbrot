@@ -21,7 +21,7 @@ int main()
 {
     txCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT);
 
-    txSelectFont("Arial", 20);
+    txSelectFont("Arial", 25);
     txSetColor(TX_WHITE);       // set FPS output font and color
     
     float dy = 0.005f, dx = 0.005f;
@@ -36,10 +36,10 @@ int main()
         RGBQUAD* pixel = txVideoMemory(); // pixel = array of structures with color
         int width  = txGetExtentX();
 
-        if (txGetAsyncKeyState(VK_RIGHT))       xC += dx * (txGetAsyncKeyState(VK_SHIFT) ? 50.f : 10.f);
-        if (txGetAsyncKeyState(VK_LEFT))        xC -= dx * (txGetAsyncKeyState(VK_SHIFT) ? 50.f : 10.f);
-        if (txGetAsyncKeyState(VK_DOWN))        yC -= dy * (txGetAsyncKeyState(VK_SHIFT) ? 50.f : 10.f);
-        if (txGetAsyncKeyState(VK_UP))          yC += dy * (txGetAsyncKeyState(VK_SHIFT) ? 50.f : 10.f);
+        if (txGetAsyncKeyState(VK_RIGHT))       xC += dx * (txGetAsyncKeyState(VK_SHIFT) ? 50.f * scale : 10.f * scale);
+        if (txGetAsyncKeyState(VK_LEFT))        xC -= dx * (txGetAsyncKeyState(VK_SHIFT) ? 50.f * scale : 10.f * scale);
+        if (txGetAsyncKeyState(VK_DOWN))        yC -= dy * (txGetAsyncKeyState(VK_SHIFT) ? 50.f * scale : 10.f * scale);
+        if (txGetAsyncKeyState(VK_UP))          yC += dy * (txGetAsyncKeyState(VK_SHIFT) ? 50.f * scale : 10.f * scale);
         if (txGetAsyncKeyState(VK_OEM_PLUS))    scale *= (txGetAsyncKeyState(VK_SHIFT) ? 0.9f : 0.95f);
         if (txGetAsyncKeyState(VK_OEM_MINUS))   scale *= (txGetAsyncKeyState(VK_SHIFT) ? 1.1f : 1.05f);
 
@@ -90,7 +90,7 @@ int main()
                 for (int i = 0; i < 8; i++)
                 {
                     BYTE c = (BYTE) I_array[i];
-                    RGBQUAD color = (N_array[i] < nMax) ? RGBQUAD {(BYTE)(255 - c), (BYTE)(c%3 * 64), c, 0} : RGBQUAD {0, 0, 0, 0};
+                    RGBQUAD color = (N_array[i] < nMax) ? RGBQUAD {(BYTE)(255 - c), (BYTE)(c%5 * 64), c, 0} : RGBQUAD {0, 0, 0, 0};
                     pixel[iy * width + ix + i] = color;
                 }
             }
