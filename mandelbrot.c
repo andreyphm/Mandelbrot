@@ -6,8 +6,10 @@
 #pragma GCC diagnostic pop
 
 #include <stdio.h>
-#include <immintrin.h>
+#include <immintrin.h> // advanced vector extentions (AVX)
 
+const int WINDOW_WIDTH  = 800;
+const int WINDOW_HEIGHT = 600;
 const int nMax = 256;
 const __m256 r2Max = _mm256_set1_ps(10.f);
 const __m256 _255  = _mm256_set1_ps(255.f);
@@ -17,7 +19,10 @@ const __m256 one = _mm256_set1_ps(1.0f);
 
 int main()
 {
-    txCreateWindow(800, 600);
+    txCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT);
+
+    txSelectFont("Arial", 20);
+    txSetColor(TX_WHITE);       // set FPS output font and color
     
     float dy = 0.005f, dx = 0.005f;
     float xC = 0.f, yC = 0.f, scale = 1.f;
@@ -38,14 +43,14 @@ int main()
         if (txGetAsyncKeyState(VK_OEM_PLUS))    scale *= (txGetAsyncKeyState(VK_SHIFT) ? 0.9f : 0.95f);
         if (txGetAsyncKeyState(VK_OEM_MINUS))   scale *= (txGetAsyncKeyState(VK_SHIFT) ? 1.1f : 1.05f);
 
-        for (int iy = 0; iy < 600; iy++)
+        for (int iy = 0; iy < WINDOW_HEIGHT; iy++)
         {
             if (txGetAsyncKeyState(VK_ESCAPE)) break;
 
             float y0 = yC + ((float)iy - 300.f) * dy * scale;
             float x0 = xC + (-400.f) * dx * scale;
 
-            for (int ix = 0; ix < 800; ix += 8, x0 += dx*scale*8)
+            for (int ix = 0; ix < WINDOW_WIDTH; ix += 8, x0 += dx*scale*8)
             {
                 __m256 X0 = _mm256_add_ps(_mm256_set1_ps(x0), _mm256_mul_ps(_7_0, _mm256_set1_ps(dx*scale)));
                 __m256 Y0 = _mm256_set1_ps(y0);
@@ -86,14 +91,14 @@ int main()
                 {
                     BYTE c = (BYTE) I_array[i];
                     RGBQUAD color = (N_array[i] < nMax) ? RGBQUAD {(BYTE)(255 - c), (BYTE)(c%3 * 64), c, 0} : RGBQUAD {0, 0, 0, 0};
-
                     pixel[iy * width + ix + i] = color;
                 }
             }
         }
-        txEnd();
-        printf("\rFPS: %6.1f   ", txGetFPS());
-        fflush(stdout);
+        char buffer[64] = {};
+        sprintf(buffer, "FPS: %.1f", txGetFPS());
+        txTextOut(10, 10, buffer);
+        txEnd();    // bifferization end
     }
     return 0;
 }
